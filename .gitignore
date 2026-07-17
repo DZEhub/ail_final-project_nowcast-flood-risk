@@ -3,6 +3,13 @@ __init__.py
 old/
 __test_*
 
+# API dashborad 
+AIL01_Final_Project_Forescating/
+dsfsft41-ml-flood-forecasting-api/
+
+# Dashborad App
+dsfsft41-ml-flood-forecasting-dashboard/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
