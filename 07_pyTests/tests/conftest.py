@@ -3,6 +3,7 @@
 # Fixtures are reusable objects for tests, like mock data.
 
 import pytest  # Import the pytest framework
+from pathlib import Path  # Import Path for object-oriented filesystem paths
 import pandas as pd  # Import pandas for data manipulation
 from datetime import datetime  # Import datetime for date handling
 
@@ -14,13 +15,12 @@ def mock_raw_dataframe():
     This simulates the data structure returned by the fetch_obs_elab API call.
     The 'scope="session"' means this fixture is created only once per test session.
     """
-    # Define the data for the mock DataFrame
-    data = {
-        "date_obs": pd.to_datetime(["2023-01-01 10:00:00", "2023-01-01 11:00:00", "2023-01-01 12:00:00"]),
-        "resultat_obs": [10.5, 11.0, 10.8]
-    }
-    # Create and return the pandas DataFrame
-    return pd.DataFrame(data)
+    # set the path to the CSV file containing the original data raw to test: mock DataFrame
+    raw_data_file = Path(__file__).resolve().parent / "test_raw_obs_elab_A2350200.csv"
+    print(raw_data_file)
+    
+    # Create and return the pandas DataFrame, parsing the date column
+    return pd.read_csv(raw_data_file) #, sep=";", parse_dates=["date_obs_elab"])
 
 
 @pytest.fixture(scope="session")
@@ -30,10 +30,13 @@ def mock_clean_dataframe():
     This simulates the data structure after the prepare_series function has been applied.
     It's used to test functions that expect cleaned data, like splitting or model training.
     """
-    # Define the data for the mock DataFrame with 'ds' and 'y' columns
-    data = {
-        "ds": pd.to_datetime(["2023-01-01 10:00:00", "2023-01-01 11:00:00", "2023-01-01 12:00:00", "2023-01-01 13:00:00", "2023-01-01 14:00:00"]),
-        "y": [10.5, 11.0, 10.8, 11.2, 11.5]
-    }
+    # set the path to the CSV file containing the data cleaned to test: mock DataFrame with 'ds' and 'y' columns
+    clean_data_file = Path(__file__).resolve().parent / "test_clean_obs_elab_A2350200.csv"
+    print(clean_data_file)
+    
+    clean_df = pd.read_csv(clean_data_file)
+    clean_df['ds'] = pd.to_datetime(clean_df['ds'], errors='coerce')
+    # clean_df['y'] = pd.to_numeric(clean_df['y'], errors='coerce')
+
     # Create and return the pandas DataFrame
-    return pd.DataFrame(data)
+    return clean_df
