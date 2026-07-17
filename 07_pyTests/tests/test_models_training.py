@@ -8,6 +8,7 @@ from unittest.mock import patch  # Import patch for mocking
 
 # Add the project's parent directory to the Python path to import project modules.
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent / "04_ML_Models"))
 
 # Import the main training functions for each model.
 from models.prophet.train_prophet import main_train_prophet
