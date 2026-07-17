@@ -1,5 +1,7 @@
 __init__.py
 *____*
+old/
+__test_*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
