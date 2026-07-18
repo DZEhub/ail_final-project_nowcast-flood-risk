@@ -13,7 +13,7 @@ on:
 # This defines the jobs that will run as part of the workflow.
 jobs:
   # The 'build-and-test' job is responsible for testing the code.
-  build-and-test:
+  unit-tests:
     # This specifies the runner environment; 'ubuntu-latest' is a standard choice.
     runs-on: ubuntu-latest
 
@@ -30,6 +30,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11' # Specify the Python version your project uses.
+        cache: 'pip'
 
     # Step 3: Install project dependencies.
     # This step uses pip to install packages listed in requirements.txt.
@@ -42,10 +43,27 @@ jobs:
     # Step 4: Run the unit tests with pytest.
     # This command executes the tests located in the '07_pyTests/tests' directory.
     - name: Run Pytest
-      run: pytest 07_pyTests/tests/
+      run: pytest -v tests/
 
-    # Step 5: Run the main training pipeline (Integration Test).
-    # This is an optional step to ensure the full pipeline runs.
-    # It uses default arguments; you can customize this command as needed.
-    - name: Run Training Pipeline
-      run: python 04_ML_Models/run_pipeline.py
+  # Step 5: Run the main training pipeline (Integration Test).
+  # This is an optional step to ensure the full pipeline runs.
+  # It uses default arguments; you can customize this command as needed.
+  build-pipeline:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+        
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Training Pipeline
+        # run: python run_pipeline.py --train --test --forecast --log-artifacts
+        run: python run_pipeline.py
