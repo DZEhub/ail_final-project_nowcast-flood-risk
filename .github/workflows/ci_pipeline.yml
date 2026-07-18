@@ -14,6 +14,7 @@ on:
 jobs:
   # The 'build-and-test' job is responsible for testing the code.
   unit-tests:
+    name: Build and Unit Test
     # This specifies the runner environment; 'ubuntu-latest' is a standard choice.
     runs-on: ubuntu-latest
 
@@ -37,8 +38,9 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt # Assuming you have a requirements.txt file.
-        pip install pytest # Install pytest for running tests.
+        # pip install -r requirements.txt # Assuming you have a requirements.txt file.
+        # pip install pytest # Install pytest for running tests.
+        pip install -r requirements.txt pytest # Install project dependencies and pytest.
 
     # Step 4: Run the unit tests with pytest.
     # This command executes the tests located in the '07_pyTests/tests' directory.
@@ -49,6 +51,7 @@ jobs:
   # This is an optional step to ensure the full pipeline runs.
   # It uses default arguments; you can customize this command as needed.
   build-pipeline:
+    name: Run Training Pipeline (Integration Test)
     needs: unit-tests
     if: success() # Only run this job if the unit tests pass.
     runs-on: ubuntu-latest
@@ -71,10 +74,12 @@ jobs:
         env:
           # --- MLflow (serveur de tracking hébergé sur Hugging Face) ---
           MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
-          # --- Stockage des artefacts MLflow sur S3 ---
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          # --- Stockage des artefacts MLflow sur S3 ---
+          AWS_S3_DEFAULT_REGION: ${{ secrets.AWS_S3_DEFAULT_REGION }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_S3_DEFAULT_REGION }}
+          AWS_S3_PROFILE_NAME: ${{ secrets.AWS_S3_PROFILE_NAME }}
           # --- Back-end storage: Neon db ---
           # NEON_HOST: ${{ secrets.NEON_HOST }}
           # NEON_USER: ${{ secrets.NEON_USER }}
