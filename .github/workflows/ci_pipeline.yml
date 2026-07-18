@@ -50,6 +50,7 @@ jobs:
   # It uses default arguments; you can customize this command as needed.
   build-pipeline:
     needs: unit-tests
+    if: success() # Only run this job if the unit tests pass.
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -67,3 +68,21 @@ jobs:
       - name: Run Training Pipeline
         # run: python run_pipeline.py --train --test --forecast --log-artifacts
         run: python run_pipeline.py
+        env:
+          # --- MLflow (serveur de tracking hébergé sur Hugging Face) ---
+          MLFLOW_TRACKING_URI: ${{ secrets.MLFLOW_TRACKING_URI }}
+          # --- Stockage des artefacts MLflow sur S3 ---
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+          # --- Back-end storage: Neon db ---
+          # NEON_HOST: ${{ secrets.NEON_HOST }}
+          # NEON_USER: ${{ secrets.NEON_USER }}
+          # NEON_PASSWORD: ${{ secrets.NEON_PASSWORD }}
+          # NEON_DATABASE: ${{ secrets.NEON_DATABASE }}
+          # NEON_PORT: ${{ secrets.NEON_PORT }}
+          BACKEND_STORE_URI: ${{ secrets.BACKEND_STORE_URI }}
+          # --- Hyperparamètres : valeur saisie en manuel, sinon défaut sur push/PR ---
+          # N_ESTIMATORS: ${{ github.event.inputs.n_estimators || '150' }}
+          # MIN_SAMPLES_SPLIT: ${{ github.event.inputs.min_samples_split || '8' }}
+          # REGISTER_ALIAS: ${{ github.event.inputs.register_alias || 'challenger' }}
