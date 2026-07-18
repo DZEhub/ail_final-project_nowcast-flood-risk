@@ -1,9 +1,0 @@
-# api's requirements for python 3.11
-streamlit==1.58.0
-typing 
-pandas>=2.0
-numpy>=1.26
-requests
-joblib
-plotly
-python-dotenv

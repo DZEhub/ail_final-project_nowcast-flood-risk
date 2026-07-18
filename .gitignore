@@ -1,4 +1,4 @@
-__init__.py
+# __init__.py
 *____*
 old/
 __test_*
@@ -14,6 +14,7 @@ dsfsft41-ml-flood-forecasting-dashboard/
 __pycache__/
 *.py[codz]
 *$py.class
+.pytest_*/
 
 # C extensions
 *.so

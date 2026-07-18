@@ -35,5 +35,9 @@ plotly
 # Utilities
 openpyxl
 jupyter
+ipykernel
 requests>=2.31
 charset-normalizer
+
+# unit testing
+pytest

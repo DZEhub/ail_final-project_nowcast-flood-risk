@@ -1,45 +1,49 @@
 name: mlflow-train
 channels:
-  - conda-forge
-  - defaults
+- conda-forge
+- defaults
 
 dependencies:
-  # ✅ Core Python (stable for ML)
-  - python=3.10
+# ✅ Core Python (stable for ML)
+- python=3.10
 
-  # ✅ Core scientific stack (compiled → conda ONLY)
-  - numpy>=1.26
-  - pandas>=2.0
-  - scikit-learn>=1.4
-  - pyarrow
+# ✅ Core scientific stack (compiled → conda ONLY)
+- numpy>=1.26
+- pandas>=2.0
+- scikit-learn>=1.4
+- pyarrow
 
-  # ✅ ML / modelling
-  - xgboost
-  - matplotlib
-  - seaborn
-  - plotly
+# ✅ ML / modelling
+- xgboost
+- matplotlib
+- seaborn
+- plotly
 
-  # ✅ Useful libs
-  - openpyxl
-  - jupyter
-  - requests>=2.31
+# ✅ Useful libs
+- openpyxl
+- jupyter
+- ipykernel
+- requests>=2.31
 
-  # ✅ System / DB
-  - psycopg2
+# ✅ System / DB
+- psycopg2
 
-  # ✅ Pip (only for pure Python ecosystem)
-  - pip
+# ✅ Pip (only for pure Python ecosystem)
+- pip
 
-  - pip:
-      # ✅ MLflow (single source of truth → avoids mismatch)
-      - mlflow==3.12.0
+- pip:
+  # ✅ MLflow (single source of truth → avoids mismatch)
+  - mlflow==3.12.0
 
-      # ✅ Optional integrations
-      - boto3
-      - gunicorn
+  # ✅ Optional integrations
+  - boto3
+  - gunicorn
 
-      # ✅ Prophet (pip is safer on Windows)
-      - prophet
+  # ✅ Prophet (pip is safer on Windows)
+  - prophet
 
-      # ✅ Fix requests warning
-      - charset-normalizer
+  # ✅ Fix requests warning
+  - charset-normalizer
+
+  # ✅ Unit testing
+  - pytest
