@@ -7,7 +7,7 @@ def test_check_data_types(mock_clean_dataframe):
     # Check data types using pandas.testing
     expected_dtypes = pd.Series({
         # 'ds' should be datetime with nanosecond/micro precision, which is the pandas default.
-        'ds': np.dtype('datetime64[us]'),
+        'ds': np.dtype('datetime64[ns]'),
         # 'y' represents water level, which is a int or float.
         'y': np.dtype('int64')
     })
