@@ -9,26 +9,30 @@ import requests
 import pandas as pd
 # numpy pour calculs
 import numpy as np
-# gestion dossiers et fichiers
+# utilitaires et gestion dossiers et fichiers
 import os
 from pprint import pprint
 from pathlib import Path
 import sys
-# librairies pour se connecter à AWS S3 et manipuler les données dans le bucket
-import boto3
 from dotenv import load_dotenv
 from pprint import pprint
+from datetime import datetime
+# librairies pour se connecter à AWS S3 et manipuler les données dans le bucket
+import boto3
 
 
 # Absolute path of this script's folder: .../Dev/python_apps/data_collection
-CURRENT_DIR = Path(__file__).resolve().parent
+CURRENT_DIR = Path(__file__).resolve().parent.parent
 # Add folder to import search path once
 if str(CURRENT_DIR) not in sys.path:
     sys.path.insert(0, str(CURRENT_DIR))
 
 # 4) Import from files inside CONFIG_DIR
-from utils import api_get_obs_elab_ALL_data, api_get_obs_elab_data, upload_file_to_s3_bucket
-from sites import (SITES, API_BASE_URL, )
+from config.aws_s3 import (api_get_obs_elab_ALL_data,
+                            api_get_obs_elab_data, 
+                            upload_file_to_s3_bucket
+                    )
+from config.sites import (SITES, API_BASE_URL, )
 
 
 # *==========================================================================================
@@ -51,10 +55,6 @@ S3_RESOURCE_ROOT_FOLDER = os.getenv("S3_RESOURCE_ROOT_FOLDER")
 # if the root folder <Final_Project_Forecasting> does not exist in your s3 bucket, it will be created automatically when you upload the first file to it, 
 # same for the subfolder <Dataset/hubeau_api> 
 S3_RESOURCE_DATA_FOLDER = f"{S3_RESOURCE_ROOT_FOLDER}/Dataset/hubeau_api"
-
-# choose the storage folder in your s3 bucket where to upload the json and csv files
-S3_STORAGE_ALL = f"{S3_RESOURCE_DATA_FOLDER}/ALL"
-S3_STORAGE_VARS = f"{S3_RESOURCE_DATA_FOLDER}/VARS"
 
 
 # 2. Create an instance of `boto3.Session` that connects with your aws account.
@@ -103,9 +103,24 @@ print(f"\nObjects in the bucket {S3_BUCKET_RESOURCE.name}:")
 # *2. ETL: Collecte et stockage des données brutes et nettoyées dans AWS S3
 # *==========================================================================================
 
+# get today's date in the format YYYY-MM-DD
+DATE_TODAY = datetime.now().strftime("%Y-%m-%d")
+
+# choose the storage folder in your s3 bucket where to upload the json and csv files
+S3_STORAGE_ALL = f"{S3_RESOURCE_DATA_FOLDER}/ALL/{DATE_TODAY}"
+S3_STORAGE_VARS = f"{S3_RESOURCE_DATA_FOLDER}/VARS/{DATE_TODAY}"
+
+# delete the existing files in the S3 bucket folder if they exist, to avoid duplicates
+# delete all objects in the S3 bucket folder for ALL and VARS
+for obj in S3_BUCKET_RESOURCE.objects.all():
+    if obj.key.startswith(S3_STORAGE_ALL) or obj.key.startswith(S3_STORAGE_VARS):
+        S3_BUCKET_RESOURCE.delete_objects(Delete={"Objects": [{"Key": obj.key}]})
+        print(f"Deleted object: {obj.key}")
+
 # période souhaitée (historique):  time period
 # les formats de date (ISO 8601) supportés : yyyy-MM-dd, yyyy-MM-dd'T'HH:mm:ss, yyyy-MM-dd'T'HH:mm:ssXXX, exemples : 2018-12-01, 2018-12-11T00:00:01, 2018-12-11T00:00:01Z
-DATE_DEBUT_OBS, DATE_FIN_OBS = ("2007-01-01", "2026-06-15")
+# DATE_DEBUT_OBS, DATE_FIN_OBS = ("2007-01-01", "2026-06-15")
+DATE_DEBUT_OBS, DATE_FIN_OBS = ("2007-01-01", DATE_TODAY)
 
 # créer dossier data en LOCAL pour stocker les données récupérées de l'API en local avant de les uploader dans le bucket s3 --- IGNORE ---
 DATA_LOCAL_STORAGE_DIR = None #  "./data", default =None, if None or "" or False or 0, the data will not be stored locally but only uploaded to s3
@@ -141,6 +156,18 @@ for site_name in SITES:
         ALL_DATABASE_dict["json_file"].append(json_output1_filename)
         ALL_DATABASE_dict["s3_json_uri"].append(s3_json1_uri)
         
+        # # TRANSFORM the data1_df DataFrame to have a single column for each hydrometric measure, with the date as the index
+        # data1_df_pivoted = data1_df.pivot(index="date_obs_elab", columns="grandeur_hydro_elab", values="valeur_obs_elab")
+        # # Reset the index to have the date as a column instead of the index
+        # data1_df_pivoted.reset_index(inplace=True)
+        # # Save the pivoted DataFrame to a CSV file locally and upload it to S3
+        # pivoted_csv_filename = f"pivoted_hubeau_obs_elab_{site_name}_{code_site}_{code_station}_ALL_{DATE_DEBUT_OBS}_{DATE_FIN_OBS}.csv"
+        # pivoted_csv_filepath = Path(DATA_LOCAL_STORAGE_DIR) / pivoted_csv_filename if DATA_LOCAL_STORAGE_DIR else Path(pivoted_csv_filename)
+        # data1_df_pivoted.to_csv(pivoted_csv_filepath, index=False)
+        # # UPLOAD the pivoted CSV file to S3
+        # s3_pivoted_csv_uri = upload_file_to_s3_bucket(pivoted_csv_filepath, S3_BUCKET_RESOURCE, f"{S3_STORAGE_ALL}/cleaned_pivoted_2")
+        # print(f"Pivoted CSV file uploaded to S3: {s3_pivoted_csv_uri}")
+        
         # *++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
         # Exporter chaque grandeur hydrométrique élaborée dans un fichier csv séparé pour chaque station
         # get data by grandeur and merge on date_obs_elab to have a final dataframe with all the hydrometric grandeurs elaborated
@@ -163,3 +190,29 @@ for site_name in SITES:
             VAR_DATABASE_dict["json_file"].append(json_output2_filename)
             VAR_DATABASE_dict["s3_csv_uri"].append(s3_csv2_uri)
             VAR_DATABASE_dict["s3_json_uri"].append(s3_json2_uri)
+            
+            # # TRANSFORM the data2_df DataFrame to have a single column for each hydrometric measure, with the date as the index
+            # data2_df_pivoted = data2_df.pivot(index="date_obs_elab", columns="grandeur_hydro_elab", values="valeur_obs_elab")
+            # # Reset the index to have the date as a column instead of the index
+            # data2_df_pivoted.reset_index(inplace=True)
+            # # Save the pivoted DataFrame to a CSV file locally and upload it to S3
+            # pivoted_csv_filename = f"pivoted_hubeau_obs_elab_{site_name}_{code_site}_{code_station}_{grandeur}_{DATE_DEBUT_OBS}_{DATE_FIN_OBS}.csv"
+            # pivoted_csv_filepath = Path(DATA_LOCAL_STORAGE_DIR) / pivoted_csv_filename if DATA_LOCAL_STORAGE_DIR else Path(pivoted_csv_filename)
+            # data2_df_pivoted.to_csv(pivoted_csv_filepath, index=False)
+            # # UPLOAD the pivoted CSV file to S3
+            # s3_pivoted_csv_uri = upload_file_to_s3_bucket(pivoted_csv_filepath, S3_BUCKET_RESOURCE, f"{S3_STORAGE_VARS}/cleaned_pivoted_2")
+            # print(f"Pivoted CSV file uploaded to S3: {s3_pivoted_csv_uri}")
+
+
+# check which csv files have been uploaded to the S3 bucket in the ALL and VARS folders
+for csv_file1 in ALL_DATABASE_dict["csv_file"]:
+    print(f"CSV file uploaded to S3 in ALL folder: {csv_file1}")
+    start_date_1, end_date_1 = csv_file1.split("_")[-2], csv_file1.split("_")[-1].split(".")[0]
+    site_name_1, code_site_1, code_station_1 = csv_file1.split("_")[4], csv_file1.split("_")[5], csv_file1.split("_")[6]
+    print(f"site_name: {site_name_1}, code_site: {code_site_1}, code_station: {code_station_1}, start_date: {start_date_1}, end_date: {end_date_1}: {end_date_1}=={DATE_FIN_OBS}")
+    
+for csv_file2 in VAR_DATABASE_dict["csv_file"]:
+    print(f"CSV file uploaded to S3 in VARS folder: {csv_file2}")
+    start_date_2, end_date_2 = csv_file2.split("_")[-2], csv_file2.split("_")[-1].split(".")[0]
+    site_name_2, code_site_2, code_station_2 = csv_file2.split("_")[4], csv_file2.split("_")[5], csv_file2.split("_")[6]
+    print(f"site_name: {site_name_2}, code_site: {code_site_2}, code_station: {code_station_2}, start_date: {start_date_2}, end_date: {end_date_2}: {end_date_2}=={DATE_FIN_OBS}")

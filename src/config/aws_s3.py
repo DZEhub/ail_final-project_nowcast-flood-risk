@@ -10,6 +10,8 @@ import re
 from datetime import datetime
 # Import 
 from io import StringIO, BytesIO
+# librairies pour se connecter à AWS S3 et manipuler les données dans le bucket
+import boto3
 
 
 # *==========================================================================================
@@ -35,6 +37,7 @@ def get_extension_from_filepath(file_path):
             return None
     else:
         return None
+
 
 def upload_file_to_s3_bucket(data_file_path: str | object, s3_bucket_resource: object, s3_storage_folder: str, Key_file_basename: str = "csv") -> str | None:
     """
@@ -199,7 +202,8 @@ def _fetch_api_json(obs_url, params, timeout_seconds=45):
         data["count"] = len(data.get("data", [])) if isinstance(data.get("data"), list) else 0
     # Return normalized dictionary payload to caller.
     return data
-        
+
+
 # ****************************
 # *FONCTION RECUP ALL OBSERVATIONS historiques: all quantities (QmnJ, QmM, HIXM, HIXnJ, QINM, QINnJ, QixM, QIXnJ) in one csv file for each station 
 # ****************************
@@ -274,7 +278,7 @@ Parametres:
     if site_name in ("Colmar-1",):
         params = {
             "code_entite": code_station,   # station cible
-            # "date_debut_obs_elab": date_debut_obs,  # date début
+            "date_debut_obs_elab": date_debut_obs,  # date début
             "date_fin_obs_elab": date_fin_obs,      # date fin
             "size": 20000,                 # taille max page
             "format": "json",               # format réponse en json (par defaut)
@@ -282,7 +286,7 @@ Parametres:
     else:
         params = {
             "code_entite": code_station,   # station cible
-            # "date_debut_obs_elab": date_debut_obs,  # date début
+            "date_debut_obs_elab": date_debut_obs,  # date début
             "date_fin_obs_elab": date_fin_obs,      # date fin
             "size": 20000,                 # taille max page
             "format": "json",               # format réponse en json (par defaut)
@@ -411,8 +415,8 @@ Parametres:
     if site_name in ("Colmar-1",):
         params = {
             "code_entite": code_station,   # station cible
-            # "date_debut_obs_elab": date_debut_obs,  # date début
-            # "date_fin_obs_elab": date_fin_obs,      # date fin
+            "date_debut_obs_elab": date_debut_obs,  # date début
+            "date_fin_obs_elab": date_fin_obs,      # date fin
             "size": 20000,                 # taille max page
             "format": "json",               # format réponse
             "grandeur_hydro_elab": grandeur_hydro_elab,  # grandeur hydrométrique élaborée
@@ -421,7 +425,7 @@ Parametres:
         params = {
             "code_entite": code_station,   # station cible
             "date_debut_obs_elab": date_debut_obs,  # date début
-            # "date_fin_obs_elab": date_fin_obs,      # date fin
+            "date_fin_obs_elab": date_fin_obs,      # date fin
             "size": 20000,                 # taille max page
             "format": "json",               # format réponse
             "grandeur_hydro_elab": grandeur_hydro_elab,  # grandeur hydrométrique élaborée
@@ -485,6 +489,7 @@ Parametres:
 # *==========================================================================================
 # *Fonctions to get or download URI data from S3 and load it into a pandas dataframe
 # *==========================================================================================
+
 
 def convert_date_to_datetime(date_str):
     """Convert a date string in the format YYYYMMDD to a datetime string in the format YYYY-MM-DD.
@@ -604,6 +609,7 @@ def parse_s3_uri(s3_uri):
     except (TypeError, ValueError) as e:
         # Add URI context to every parsing error so debugging remains straightforward.
         raise ValueError(f"Error parsing S3 URI '{s3_uri}': {str(e)}")
+
 
 if __name__ == "__main__":
     pass

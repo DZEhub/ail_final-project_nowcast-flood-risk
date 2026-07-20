@@ -6,6 +6,7 @@ import pytest  # Import the pytest framework
 from pathlib import Path  # Import Path for object-oriented filesystem paths
 import pandas as pd  # Import pandas for data manipulation
 from datetime import datetime  # Import datetime for date handling
+import numpy as np  # Import numpy for array handling
 
 
 @pytest.fixture(scope="session")
@@ -40,3 +41,48 @@ def mock_clean_dataframe():
 
     # Create and return the pandas DataFrame
     return clean_df
+
+
+"""
+==================================================================
+Model Testing in the Mock ML Project
+==================================================================
+"""
+
+
+# Sample DataFrame as a fixture
+@pytest.fixture
+def sample_data():
+    return pd.DataFrame({
+        'feature': [1, 2, 3, 4],
+        'target': [2, 4, 6, 8]
+    })
+
+
+def sample_data_cleaned():
+    return pd.DataFrame({
+        'ds': [1, 2, 3, 4],
+        'y': [2, 4, 6, 8]
+    })
+
+
+@pytest.fixture
+def sample_train_data():
+    X = np.array([[1], [2], [3], [4]])
+    y = np.array([2, 4, 6, 8])
+    return X, y
+
+
+@pytest.fixture
+def sample_test_data():
+    X_test = np.array([[5], [6]])
+    y_test = np.array([10, 12])
+    return X_test, y_test
+
+
+@pytest.fixture
+def edge_case_data():
+    empty_data = (np.array([]), np.array([]))
+    mismatched_data = (np.array([[1], [2], [3]]), np.array([2, 4]))
+    nan_data = (np.array([[1], [2], [np.nan]]), np.array([2, 4, 6]))
+    return empty_data, mismatched_data, nan_data
