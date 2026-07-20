@@ -27,7 +27,8 @@ sys.path.append(str(Path(__file__).resolve().parent))
 
 # Import utilities for fetching data from the API, cleaning the time series, and splitting the data
 from src.config.data_utils import (fetch_obs_elab, prepare_series, 
-                                split_train_test, SITES)
+                                split_train_test)
+from src.config.sites import SITES
 # Import utilities for argument parsing, MLflow configuration, and plotting
 from src.config.model_utils import (parse_args, setup_mlflow, 
                                     plot_all_models_comparison)
